@@ -1,7 +1,7 @@
 # UpdateTimeSheets  
 
 This application was designed for specific use by an employee at a company in order to update their yearly timesheet.  
-NOTE: The code has been designed to only work on a semimonthly payroll schedule.  
+NOTE: The code has been designed to only work on a semimonthly payroll schedule. It has only been designed to work with the included excel spreadsheet template.
   
 ## Installation  
 You'll only need the `.jar` file included with the `.zip` file you download from this repo. Simply download the `.jar` file and run it from wherever you downloaded it to.  
