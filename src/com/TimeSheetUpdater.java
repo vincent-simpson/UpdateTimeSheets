@@ -25,7 +25,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-public class Main extends Application {
+public class TimeSheetUpdater extends Application {
     private int year=-1;
 
     @Override
