@@ -12,8 +12,15 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.ss.usermodel.*;
-
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -26,8 +33,48 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class TimeSheetUpdater extends Application {
+    public static void main(String[] args) {
+        launch(args);
+    }
+
     private int year=-1;
 
+    private void clearSpreadSheet(String path) throws EncryptedDocumentException, IOException {
+    	Workbook workbook;
+    	
+    	File timeSheets = new File(path);
+        FileInputStream inputStream = null;
+
+        if (!timeSheets.exists()) {
+            throw new FileNotFoundException();
+        } else {
+            inputStream = new FileInputStream(timeSheets);
+            workbook = WorkbookFactory.create(inputStream);
+        }
+        
+        Iterator<Sheet> sheetIterator = workbook.sheetIterator();
+        while(sheetIterator.hasNext()) {
+        	Sheet s = sheetIterator.next();
+        	
+        	for(int i=4; i < 32; i+=2 ) {
+        		Cell c = s.getRow(i).getCell(1);
+        		if(c != null) {
+            		c.setCellType(CellType.BLANK);
+        		}
+        	}      	
+        }
+      
+        if (inputStream != null) {
+            inputStream.close();
+        }
+
+        FileOutputStream outputStream = new FileOutputStream(timeSheets);
+        workbook.write(outputStream);
+        outputStream.close();
+        workbook.close();
+    	
+    }
+    
     @Override
     public void start(Stage primaryStage) throws Exception{
         Pane root = new Pane();
@@ -74,6 +121,7 @@ public class TimeSheetUpdater extends Application {
 
             Workbook workbook;            
 
+            //These are the predefined pay periods for bi-monthly.
             LocalDate[] endingPayPeriods = {
                     LocalDate.of(year, 1, 8),
                     LocalDate.of(year, 1, 24),
@@ -142,12 +190,22 @@ public class TimeSheetUpdater extends Application {
                 paidDateCell.setCellStyle(cellStyle);
                 payDate.setCellStyle(cellStyle);
                 payPeriod.setCellStyle(cellStyle);
-
+                
+                /*
+                 * This code could probably use some optimization. Basically what we're looking at is which sheet we're currently
+                 * viewing. If its the first sheet, the date range for the pay period needs to be the original base date
+                 * up to the first predefined end of the pay date. Every subsequent start date of the pay period is the end date of the
+                 * previous period + 1.
+                 */
                 if (index == 0) {
-                    payPeriod.setCellValue(baseDate.plusDays(1).format(formatterHeaderPart1) + endingPayPeriods[0].format(formatterHeaderPart2));
+                    payPeriod.setCellValue(baseDate.plusDays(1).format(formatterHeaderPart1) + 
+                    		endingPayPeriods[0].format(formatterHeaderPart2));
+                    
                     endingPayPeriodsForPayDate[0] = endingPayPeriods[0].plusDays(1);
+      
                     payDate.setCellValue(endingPayPeriods[0].plusDays(7).format(formatter));
-                } else if (index <= 23) {
+                } 
+                else if (index <= 23) {
                     payPeriod.setCellValue(endingPayPeriodsForPayDate[index - 1].format(formatterHeaderPart1) + endingPayPeriodsForPayDate[index].format(formatterHeaderPart2));
                     endingPayPeriodsForPayDate[index] = endingPayPeriods[index].plusDays(1);
                     payDate.setCellValue(endingPayPeriods[index].plusDays(7).format(formatter));
@@ -155,7 +213,8 @@ public class TimeSheetUpdater extends Application {
 
                 Row dayOfWeekRow = null;
                 boolean weekday;
-                boolean firstMonday = true; //Its assumed that the first day of the week will be a Monday. If not,
+                boolean firstMonday = true; 
+                //Its assumed that the first day of the week will be a Monday. If not,
                 // then the case statement for that day of the week will set firstMonday=false
                 //meaning that the next time we enter the Monday case statement, we need to go to the second Monday cell.
                 //This method has been applied to all other days of the week below.
@@ -170,13 +229,6 @@ public class TimeSheetUpdater extends Application {
                 boolean secondThursday=true;
                 boolean secondFriday = true;
                 
-//                boolean thirdMonday = true;
-//                boolean thirdTuesday = true;
-//                boolean thirdWednesday = true;
-//                boolean thirdThursday = true;
-//                boolean thirdFriday = true;
-
-
                 while (baseDate.isBefore(endingPayPeriods[index])) {
                     weekday = true;
 
@@ -254,7 +306,8 @@ public class TimeSheetUpdater extends Application {
                             weekday = false;
                             break;
                     }
-
+                    
+                    //We only want to put the date value into the excel sheet if it is a weekday
                     if (weekday) {
                         Cell dateCell = dayOfWeekRow.createCell(1);
                         dateCell.setCellValue(baseDate.format(formatter));
@@ -269,6 +322,8 @@ public class TimeSheetUpdater extends Application {
                 index++;
             }
 
+            //This code is to make sure that the columns are resized to fit any text that went past the previously
+            //set column boundaries before the new data was entered
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 workbook.getSheetAt(i).autoSizeColumn(1);
                 workbook.getSheetAt(i).autoSizeColumn(3);
@@ -288,46 +343,5 @@ public class TimeSheetUpdater extends Application {
             e.printStackTrace();
         }
         return 1;
-    }
-    
-    private void clearSpreadSheet(String path) throws EncryptedDocumentException, IOException {
-    	Workbook workbook;
-    	
-    	File timeSheets = new File(path);
-        FileInputStream inputStream = null;
-
-        if (!timeSheets.exists()) {
-            throw new FileNotFoundException();
-        } else {
-            inputStream = new FileInputStream(timeSheets);
-            workbook = WorkbookFactory.create(inputStream);
-        }
-        
-        Iterator<Sheet> sheetIterator = workbook.sheetIterator();
-        while(sheetIterator.hasNext()) {
-        	Sheet s = sheetIterator.next();
-        	
-        	for(int i=4; i < 32; i+=2 ) {
-        		Cell c = s.getRow(i).getCell(1);
-        		if(c != null) {
-            		c.setCellType(CellType.BLANK);
-        		}
-        	}      	
-        }
-      
-        if (inputStream != null) {
-            inputStream.close();
-        }
-
-        FileOutputStream outputStream = new FileOutputStream(timeSheets);
-        workbook.write(outputStream);
-        outputStream.close();
-        workbook.close();
-    	
-    }
-
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }
