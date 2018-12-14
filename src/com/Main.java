@@ -1,9 +1,5 @@
 package com;
 
-/*
- * TODO:
- * Everything works. Just need to implement code that clears all cells with dates in the B column before running app.
- */
 
 import java.io.File;
 import java.io.FileInputStream;
