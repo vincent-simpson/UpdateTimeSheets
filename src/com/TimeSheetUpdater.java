@@ -31,6 +31,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator;
 
 public class TimeSheetUpdater extends Application {
     public static void main(String[] args) {
@@ -56,13 +57,19 @@ public class TimeSheetUpdater extends Application {
         while(sheetIterator.hasNext()) {
         	Sheet s = sheetIterator.next();
         	
-        	for(int i=4; i < 32; i+=2 ) {
-        		Cell c = s.getRow(i).getCell(1);
-        		if(c != null) {
-            		c.setCellType(CellType.BLANK);
-        		}
-        	}      	
+        	for(int row=4; row < 33; row+=2 ) {
+        	    for(int col=1; col < 6; col++) {
+        	        Cell c = s.getRow(row)
+                            .getCell(col);
+                    if(c != null) {
+                        c.setCellValue(0);
+                        c.setCellType(CellType.BLANK);
+                    }
+                }
+            }
         }
+
+        XSSFFormulaEvaluator.evaluateAllFormulaCells(workbook);
       
         if (inputStream != null) {
             inputStream.close();
@@ -98,7 +105,7 @@ public class TimeSheetUpdater extends Application {
                 File selectedFile = fc.showOpenDialog(primaryStage);
                 if(selectedFile != null){
                     final String filePath = selectedFile.getAbsolutePath();
-                    int successfullInt = updateSpeadsheet(filePath);
+                    int successfullInt = updateSpreadsheet(filePath);
                     if(successfullInt == 1) gp.add(successfullyUpdated, 0, 2);
                 }
             }
@@ -115,7 +122,7 @@ public class TimeSheetUpdater extends Application {
 
     }
 
-    private int updateSpeadsheet(String filePath) {
+    private int updateSpreadsheet(String filePath) {
         try {
             clearSpreadSheet(filePath);
 
@@ -210,6 +217,11 @@ public class TimeSheetUpdater extends Application {
                     endingPayPeriodsForPayDate[index] = endingPayPeriods[index].plusDays(1);
                     payDate.setCellValue(endingPayPeriods[index].plusDays(7).format(formatter));
                 }
+
+                /*
+                Set sheet name to payDate
+                 */
+                workbook.setSheetName(workbook.getSheetIndex(sheet), payDate.getStringCellValue().replace('/', '-'));
 
                 Row dayOfWeekRow = null;
                 boolean weekday;
