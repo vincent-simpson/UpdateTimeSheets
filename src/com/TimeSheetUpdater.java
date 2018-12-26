@@ -94,7 +94,6 @@ public class TimeSheetUpdater extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        establishDatabaseConnection();
 
         GridPane gp = new GridPane();
         gp.setGridLinesVisible(false);
@@ -103,28 +102,20 @@ public class TimeSheetUpdater extends Application {
         promptYear.setPromptText("Update for which year?");
 
         Button submitYear = new Button("Submit year");
-        Button loginButton = new Button("Login");
-        Button createAccount = new Button("Create Account");
 
         Text successfullyUpdated = new Text("Spreadsheet successfully updated");
-        Text titleText = new Text("Payroll Management");
-        titleText.setFont(Font.font("Times New Roman", 34));
-
-        TextField usernameTF = new TextField("Enter username");
-        TextField passwordTF = new TextField("Enter password");
 
         Button browseButton = new Button("Browse");
-
-        VBox titleBox = new VBox(8);
-        titleBox.getChildren().addAll(titleText, usernameTF, passwordTF, loginButton, createAccount);
-        titleBox.setAlignment(Pos.CENTER);
 
         ColumnConstraints column1 = new ColumnConstraints();
         column1.setHalignment(HPos.CENTER);
 
-        gp.setAlignment(Pos.CENTER);
+        VBox vbox = new VBox(8);
+        vbox.getChildren().addAll(promptYear, submitYear, browseButton);
 
-        gp.add(titleBox, 0, 0);
+        gp.getChildren().add(vbox);
+
+        gp.setAlignment(Pos.CENTER);
 
         browseButton.setOnAction(event -> {
             if (year != -1) {
@@ -143,22 +134,7 @@ public class TimeSheetUpdater extends Application {
             year = Integer.parseInt(promptYear.getText());
         });
 
-        createAccount.setOnAction( event -> {
-            GridPane gp2 = new GridPane();
-            gp2.setAlignment(Pos.CENTER);
-            gp2.setVgap(10);
-
-            TextField newUserNameTF = new TextField("Enter username");
-            TextField newPasswordTF = new TextField("Enter password");
-
-            gp2.add(newUserNameTF, 0, 0);
-            gp2.add(newPasswordTF, 0, 1);
-
-            Scene createAccountScene = new Scene(gp2, 700, 600);
-            primaryStage.setScene(createAccountScene);
-        });
-
-        Scene scene = new Scene(gp, 700, 600);
+        Scene scene = new Scene(gp, 200, 200);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
@@ -401,23 +377,5 @@ public class TimeSheetUpdater extends Application {
                 LocalDate.of(year, 12, 24)
 
         };
-    }
-
-    private void establishDatabaseConnection() {
-        try {
-            String projectDefaultPath = new File("").getAbsolutePath(); //used to get the current directory of the project.
-
-            ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "./lib/batchfile");
-            File dir = new File(projectDefaultPath + "/lib");
-
-            pb.directory(dir);
-            Process p = pb.start();
-
-            connection = getConnection("jdbc:mysql://localhost/users", "root", "");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }
