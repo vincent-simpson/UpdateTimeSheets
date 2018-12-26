@@ -1,53 +1,33 @@
 package com;
 
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.*;
+import javafx.application.Application;
+import javafx.geometry.HPos;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator;
+
+import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Iterator;
-
-import javafx.geometry.HPos;
-import javafx.geometry.Pos;
-import javafx.scene.layout.*;
-import javafx.scene.text.Font;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import javafx.scene.text.Text;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator;
-
-import static java.sql.DriverManager.*;
 
 public class TimeSheetUpdater extends Application {
     public static void main(String[] args) {
         launch(args);
     }
 
-    private Connection connection;
-    private Statement statement;
-    private PreparedStatement preparedStatement;
     private int year = -1;
     private boolean weekday;
 
@@ -93,7 +73,7 @@ public class TimeSheetUpdater extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
 
         GridPane gp = new GridPane();
         gp.setGridLinesVisible(false);
@@ -130,9 +110,7 @@ public class TimeSheetUpdater extends Application {
             }
         });
 
-        submitYear.setOnAction(event -> {
-            year = Integer.parseInt(promptYear.getText());
-        });
+        submitYear.setOnAction(event -> year = Integer.parseInt(promptYear.getText()));
 
         Scene scene = new Scene(gp, 200, 200);
         primaryStage.setScene(scene);
